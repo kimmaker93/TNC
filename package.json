@@ -4,8 +4,9 @@
   "description": "AI-powered web content summarizer for Slack",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "prepare": "node scripts/create-icons.cjs",
+    "dev": "npm run prepare && vite",
+    "build": "npm run prepare && tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
