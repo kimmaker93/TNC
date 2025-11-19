@@ -1,0 +1,66 @@
+import { useEffect } from 'react';
+import { usePopupStore } from './store';
+import { IdleView } from './components/IdleView';
+import { ReadyView } from './components/ReadyView';
+import { LoadingView } from './components/LoadingView';
+import { CompleteView } from './components/CompleteView';
+import { ErrorView } from './components/ErrorView';
+import { MessageType, type ExtensionMessage, type PageContent } from '@shared/types';
+
+export default function App() {
+  const { state, setState, setPageContent, setError, loadSettings, loadUsage } = usePopupStore();
+
+  useEffect(() => {
+    // 초기 설정 로드
+    loadSettings();
+    loadUsage();
+
+    // 현재 탭의 콘텐츠 추출 (아직 API 호출 안함 - 비용 방어)
+    extractPageContent();
+  }, []);
+
+  /**
+   * 페이지 콘텐츠 추출
+   */
+  const extractPageContent = async () => {
+    try {
+      setState('loading');
+      setError(null);
+
+      // 현재 활성 탭 가져오기
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+      if (!tab.id) {
+        throw new Error('활성 탭을 찾을 수 없습니다.');
+      }
+
+      // Content script에 메시지 전송
+      const response: ExtensionMessage<PageContent> = await chrome.tabs.sendMessage(tab.id, {
+        type: MessageType.EXTRACT_CONTENT,
+      });
+
+      if (response.type === MessageType.ERROR) {
+        throw new Error(response.error || '콘텐츠 추출에 실패했습니다.');
+      }
+
+      if (response.type === MessageType.CONTENT_EXTRACTED && response.payload) {
+        setPageContent(response.payload);
+        setState('ready');
+      }
+    } catch (error) {
+      console.error('[TNC] Extract content error:', error);
+      setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+      setState('error');
+    }
+  };
+
+  return (
+    <div className="w-[400px] h-[600px] bg-gray-50">
+      {state === 'idle' && <IdleView />}
+      {state === 'ready' && <ReadyView />}
+      {state === 'loading' && <LoadingView />}
+      {state === 'complete' && <CompleteView />}
+      {state === 'error' && <ErrorView />}
+    </div>
+  );
+}
