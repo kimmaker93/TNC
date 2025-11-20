@@ -1,5 +1,6 @@
 import { usePopupStore } from '../store';
 import { summarize } from '../api';
+import { SettingsButton } from './SettingsButton';
 
 export function ReadyView() {
   const { pageContent, setState, setSummaryData, setError, usage, settings, incrementUsage } =
@@ -62,7 +63,10 @@ export function ReadyView() {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="bg-primary-600 text-white p-4">
-        <h1 className="text-lg font-bold">Team News Clipper</h1>
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-lg font-bold">Team News Clipper</h1>
+          <SettingsButton />
+        </div>
         <p className="text-sm opacity-90">페이지 요약 준비 완료</p>
       </div>
 

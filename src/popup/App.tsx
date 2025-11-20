@@ -5,10 +5,12 @@ import { ReadyView } from './components/ReadyView';
 import { LoadingView } from './components/LoadingView';
 import { CompleteView } from './components/CompleteView';
 import { ErrorView } from './components/ErrorView';
+import { UnsupportedPage } from './components/UnsupportedPage';
+import { Settings } from './pages/Settings';
 import { MessageType, type ExtensionMessage, type PageContent } from '@shared/types';
 
 export default function App() {
-  const { state, setState, setPageContent, setError, loadSettings, loadUsage } = usePopupStore();
+  const { currentView, state, setState, setPageContent, setError, loadSettings, loadUsage } = usePopupStore();
 
   useEffect(() => {
     // 초기 설정 로드
@@ -43,7 +45,9 @@ export default function App() {
         throw new Error(response.error || '콘텐츠 추출에 실패했습니다.');
       }
 
-      if (response.type === MessageType.CONTENT_EXTRACTED && response.payload) {
+      if (response.type === MessageType.UNSUPPORTED_PAGE) {
+        setState('unsupported');
+      } else if (response.type === MessageType.CONTENT_EXTRACTED && response.payload) {
         setPageContent(response.payload);
         setState('ready');
       }
@@ -54,6 +58,16 @@ export default function App() {
     }
   };
 
+  // 설정 페이지 렌더링
+  if (currentView === 'settings') {
+    return (
+      <div className="w-[400px] h-[600px] bg-white">
+        <Settings />
+      </div>
+    );
+  }
+
+  // 메인 페이지 렌더링
   return (
     <div className="w-[400px] h-[600px] bg-gray-50">
       {state === 'idle' && <IdleView />}
@@ -61,6 +75,7 @@ export default function App() {
       {state === 'loading' && <LoadingView />}
       {state === 'complete' && <CompleteView />}
       {state === 'error' && <ErrorView />}
+      {state === 'unsupported' && <UnsupportedPage />}
     </div>
   );
 }

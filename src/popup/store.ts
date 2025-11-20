@@ -4,11 +4,16 @@ import type {
   PageContent,
   UserSettings,
   SummaryResponse,
+  PopupView,
 } from '@shared/types';
-import { getUserSettings, checkAndUpdateUsage, incrementUsage } from '@shared/utils';
+import { getUserSettings, checkAndUpdateUsage, incrementUsage, saveUserSettings } from '@shared/utils';
 import { DEFAULT_SETTINGS } from '@shared/constants';
 
 interface PopupState {
+  // 뷰 네비게이션
+  currentView: PopupView;
+  setCurrentView: (view: PopupView) => void;
+
   // 상태
   state: ExtensionState;
   setState: (state: ExtensionState) => void;
@@ -48,6 +53,10 @@ interface PopupState {
 }
 
 export const usePopupStore = create<PopupState>((set, get) => ({
+  // 뷰 네비게이션
+  currentView: 'main',
+  setCurrentView: (view) => set({ currentView: view }),
+
   // 초기 상태
   state: 'idle',
   setState: (state) => set({ state }),
@@ -88,8 +97,8 @@ export const usePopupStore = create<PopupState>((set, get) => ({
   updateSettings: async (newSettings) => {
     const current = get().settings;
     const updated = { ...current, ...newSettings };
+    await saveUserSettings(updated);
     set({ settings: updated });
-    // Chrome storage에 저장은 utils에서 처리
   },
 
   usage: {

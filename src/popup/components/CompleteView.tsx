@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePopupStore } from '../store';
 import { sendToSlack } from '../api';
 import { CHARACTER_LIMITS } from '@shared/constants';
+import { SettingsButton } from './SettingsButton';
 
 export function CompleteView() {
   const {
@@ -67,7 +68,10 @@ export function CompleteView() {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="bg-green-600 text-white p-4">
-        <h1 className="text-lg font-bold">✨ 요약 완료!</h1>
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-lg font-bold">✨ 요약 완료!</h1>
+          <SettingsButton />
+        </div>
         <p className="text-sm opacity-90">내용을 확인하고 수정할 수 있습니다</p>
       </div>
 

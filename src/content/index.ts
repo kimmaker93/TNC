@@ -4,6 +4,48 @@ import { MessageType, type ExtensionMessage, type PageContent } from '@shared/ty
 console.log('[TNC] Content script loaded');
 
 /**
+ * 지원하지 않는 페이지 패턴
+ */
+const UNSUPPORTED_URL_PATTERNS = [
+  /^chrome:\/\//,
+  /^edge:\/\//,
+  /^about:/,
+  /^file:\/\//,
+  /^chrome-extension:\/\//,
+  /^moz-extension:\/\//,
+];
+
+/**
+ * 최소 텍스트 콘텐츠 길이 (글자 수)
+ */
+const MIN_CONTENT_LENGTH = 100;
+
+/**
+ * 페이지가 지원되는지 확인
+ */
+function isPageSupported(): boolean {
+  const url = window.location.href;
+
+  // 지원하지 않는 URL 패턴 체크
+  if (UNSUPPORTED_URL_PATTERNS.some((pattern) => pattern.test(url))) {
+    return false;
+  }
+
+  // 페이지가 완전히 로드되었는지 확인
+  if (document.readyState !== 'complete' && document.readyState !== 'interactive') {
+    return false;
+  }
+
+  // 최소 텍스트 콘텐츠가 있는지 확인
+  const bodyText = document.body?.innerText || '';
+  if (bodyText.trim().length < MIN_CONTENT_LENGTH) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Background script로부터 메시지 수신
  */
 chrome.runtime.onMessage.addListener(
@@ -27,6 +69,15 @@ async function handleExtractContent(
 ): Promise<void> {
   try {
     console.log('[TNC] Extracting content from page...');
+
+    // 페이지 지원 여부 확인
+    if (!isPageSupported()) {
+      console.log('[TNC] Unsupported page detected');
+      sendResponse({
+        type: MessageType.UNSUPPORTED_PAGE,
+      });
+      return;
+    }
 
     const content = await ContentParser.extractContent();
 
