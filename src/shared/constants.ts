@@ -31,12 +31,14 @@ export const DEFAULT_SETTINGS = {
     mode: 'summary' as const,
     language: 'ko' as const,
     maxLength: 150,
+    summaryMode: 'bullets' as const,
   },
   slackConfig: {
     webhookUrl: '',
     username: 'Team News Clipper',
     iconEmoji: ':newspaper:',
   },
+  autoSend: false,
 } as const;
 
 /**

@@ -19,6 +19,7 @@ export interface SummaryConfig {
   mode: 'summary' | 'keywords';
   language: 'ko' | 'en';
   maxLength: number;
+  summaryMode: 'bullets' | 'paragraph';
 }
 
 /**
@@ -40,6 +41,7 @@ export interface UserSettings {
   dailyLimit: number;
   usageCount: number;
   lastResetDate: string;
+  autoSend: boolean; // 요약 후 자동 전송 여부
 }
 
 /**
@@ -108,7 +110,7 @@ export interface UsageResponse {
 /**
  * Extension 상태
  */
-export type ExtensionState = 'idle' | 'ready' | 'loading' | 'complete' | 'error';
+export type ExtensionState = 'idle' | 'ready' | 'loading' | 'complete' | 'error' | 'unsupported';
 
 /**
  * 메시지 타입 (background와 content script 간 통신)
@@ -116,6 +118,7 @@ export type ExtensionState = 'idle' | 'ready' | 'loading' | 'complete' | 'error'
 export enum MessageType {
   EXTRACT_CONTENT = 'EXTRACT_CONTENT',
   CONTENT_EXTRACTED = 'CONTENT_EXTRACTED',
+  UNSUPPORTED_PAGE = 'UNSUPPORTED_PAGE',
   SUMMARIZE = 'SUMMARIZE',
   SUMMARY_COMPLETE = 'SUMMARY_COMPLETE',
   SEND_TO_SLACK = 'SEND_TO_SLACK',
@@ -131,3 +134,8 @@ export interface ExtensionMessage<T = any> {
   payload?: T;
   error?: string;
 }
+
+/**
+ * Popup View 타입 (라우팅용)
+ */
+export type PopupView = 'main' | 'settings';
