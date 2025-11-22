@@ -38,6 +38,7 @@ interface PopupState {
     insight: string;
     comment: string;
   } | null;
+  scrapId: string | null; // 현재 Scrap ID (Slack 전송 시 사용)
   setSummaryData: (data: PopupState['summaryData']) => void;
   updateSummary: (summary: string | string[]) => void;
   updateInsight: (insight: string) => void;
@@ -141,6 +142,7 @@ export const usePopupStore = create<PopupState>((set, get) => ({
   setPageContent: (content) => set({ pageContent: content }),
 
   summaryData: null,
+  scrapId: null,
   setSummaryData: (data) => set({ summaryData: data }),
   updateSummary: (summary) => {
     const current = get().summaryData;

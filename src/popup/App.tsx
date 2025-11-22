@@ -8,6 +8,7 @@ import { ErrorView } from './components/ErrorView';
 import { UnsupportedPage } from './components/UnsupportedPage';
 import { Settings } from './pages/Settings';
 import { AuthPage } from './pages/AuthPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { MessageType, type ExtensionMessage, type PageContent } from '@shared/types';
 
 export default function App() {
@@ -97,6 +98,15 @@ export default function App() {
     return (
       <div className="w-[400px] h-[600px] bg-white">
         <Settings />
+      </div>
+    );
+  }
+
+  // 히스토리 페이지 렌더링
+  if (currentView === 'history') {
+    return (
+      <div className="w-[400px] h-[600px] bg-white">
+        <HistoryPage />
       </div>
     );
   }

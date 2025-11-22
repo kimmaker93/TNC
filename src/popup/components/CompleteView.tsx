@@ -1,31 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePopupStore } from '../store';
-import { sendToSlack } from '../api';
+import { sendScrapToSlack, getActiveIntegrations } from '../api';
 import { CHARACTER_LIMITS } from '@shared/constants';
 import { SettingsButton } from './SettingsButton';
+import { HistoryButton } from './HistoryButton';
+import type { Integration } from '@shared/types';
 
 export function CompleteView() {
   const {
     pageContent,
     summaryData,
-    settings,
+    scrapId,
     updateSummary,
     updateInsight,
     updateComment,
     setState,
     setError,
+    setCurrentView,
+    auth,
   } = usePopupStore();
 
   const [isSending, setIsSending] = useState(false);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [selectedIntegrationId, setSelectedIntegrationId] = useState<string | null>(null);
+  const [isLoadingIntegrations, setIsLoadingIntegrations] = useState(true);
+
+  // Load integrations on mount
+  useEffect(() => {
+    const loadIntegrations = async () => {
+      if (!auth.jwt) return;
+
+      try {
+        setIsLoadingIntegrations(false);
+        const activeIntegrations = await getActiveIntegrations(auth.jwt);
+        setIntegrations(activeIntegrations);
+
+        // Auto-select first integration
+        if (activeIntegrations.length > 0) {
+          setSelectedIntegrationId(activeIntegrations[0].id);
+        }
+      } catch (error) {
+        console.error('[CompleteView] Load integrations error:', error);
+      } finally {
+        setIsLoadingIntegrations(false);
+      }
+    };
+
+    loadIntegrations();
+  }, [auth.jwt]);
 
   if (!pageContent || !summaryData) {
     return null;
   }
 
   const handleSendToSlack = async () => {
-    // Webhook URL 체크
-    if (!settings.slackConfig.webhookUrl) {
-      setError('Slack Webhook URL이 설정되지 않았습니다. 설정 페이지에서 입력해주세요.');
+    // Integration 선택 체크
+    if (!selectedIntegrationId) {
+      setError('Slack 워크스페이스를 선택해주세요.');
+      setState('error');
+      return;
+    }
+
+    // Scrap ID 체크
+    if (!scrapId) {
+      setError('요약 데이터를 찾을 수 없습니다.');
       setState('error');
       return;
     }
@@ -33,15 +71,11 @@ export function CompleteView() {
     try {
       setIsSending(true);
 
-      const response = await sendToSlack({
-        webhookUrl: settings.slackConfig.webhookUrl,
-        title: pageContent.title,
-        url: pageContent.url,
-        summary: summaryData.summary,
-        keywords: summaryData.keywords,
-        insight: summaryData.insight,
-        comment: summaryData.comment,
-      });
+      const response = await sendScrapToSlack({
+        scrap_id: scrapId,
+        integration_id: selectedIntegrationId,
+        user_comment: summaryData.comment,
+      }, auth.jwt || '');
 
       if (!response.success) {
         throw new Error(response.error || 'Slack 전송에 실패했습니다.');
@@ -59,7 +93,6 @@ export function CompleteView() {
     }
   };
 
-  const isSummaryMode = settings.summaryConfig.mode === 'summary';
   const summaryArray = Array.isArray(summaryData.summary)
     ? summaryData.summary
     : [summaryData.summary];
@@ -70,7 +103,10 @@ export function CompleteView() {
       <div className="bg-green-600 text-white p-4">
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-lg font-bold">✨ 요약 완료!</h1>
-          <SettingsButton />
+          <div className="flex items-center gap-1">
+            <HistoryButton />
+            <SettingsButton />
+          </div>
         </div>
         <p className="text-sm opacity-90">내용을 확인하고 수정할 수 있습니다</p>
       </div>
@@ -85,30 +121,71 @@ export function CompleteView() {
           <p className="text-xs text-gray-500 truncate">{pageContent.url}</p>
         </div>
 
+        {/* Integration Selector */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            🚀 Slack 워크스페이스 선택
+          </label>
+          {isLoadingIntegrations ? (
+            <div className="text-center py-4 text-gray-500">
+              <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              <p className="text-xs mt-2">로딩 중...</p>
+            </div>
+          ) : integrations.length === 0 ? (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 mb-2">
+                연동된 Slack 워크스페이스가 없습니다.
+              </p>
+              <button
+                onClick={() => setCurrentView('settings')}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                설정에서 연동하기 →
+              </button>
+            </div>
+          ) : (
+            <select
+              value={selectedIntegrationId || ''}
+              onChange={(e) => setSelectedIntegrationId(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              {integrations.map((integration) => (
+                <option key={integration.id} value={integration.id}>
+                  {integration.workspace_name || 'Slack Workspace'}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
         {/* Summary */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            {isSummaryMode ? '📝 요약 (3줄)' : '🏷️ 키워드'}
+            📝 요약 (3줄)
           </label>
-          {isSummaryMode ? (
-            <textarea
-              value={summaryArray.join('\n')}
-              onChange={(e) => updateSummary(e.target.value.split('\n'))}
-              className="w-full h-32 p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="요약 내용을 수정할 수 있습니다..."
-            />
-          ) : (
-            <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg bg-white">
-              {summaryData.keywords.map((keyword, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium"
-                >
-                  {keyword}
-                </span>
-              ))}
-            </div>
-          )}
+          <textarea
+            value={summaryArray.join('\n')}
+            onChange={(e) => updateSummary(e.target.value.split('\n'))}
+            className="w-full h-32 p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder="요약 내용을 수정할 수 있습니다..."
+          />
+        </div>
+
+        {/* Keywords */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            🏷️ 키워드
+          </label>
+          <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg bg-white">
+            {summaryData.keywords.map((keyword, index) => (
+              <span
+                key={index}
+                className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium"
+              >
+                {keyword}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Insight */}

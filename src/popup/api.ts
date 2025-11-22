@@ -4,6 +4,13 @@ import type {
   SummaryResponse,
   SlackSendRequest,
   SlackSendResponse,
+  CreateScrapRequest,
+  CreateScrapResponse,
+  SendScrapToSlackRequest,
+  SendScrapToSlackResponse,
+  Integration,
+  GetScrapsResponse,
+  Scrap,
 } from '@shared/types';
 
 /**
@@ -117,5 +124,122 @@ export async function sendToSlack(request: SlackSendRequest): Promise<SlackSendR
       success: false,
       error: error instanceof Error ? error.message : 'Slack 전송에 실패했습니다.',
     };
+  }
+}
+
+/**
+ * Scrap 생성 API 호출 (OpenAI 요약 포함)
+ */
+export async function createScrap(request: CreateScrapRequest, jwt: string): Promise<CreateScrapResponse> {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/scraps`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Scrap 생성에 실패했습니다.');
+    }
+
+    const data: CreateScrapResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('[TNC] Create scrap API error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Scrap 생성에 실패했습니다.',
+    };
+  }
+}
+
+/**
+ * 사용자의 활성 Integration 목록 가져오기
+ */
+export async function getActiveIntegrations(jwt: string): Promise<Integration[]> {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/integrations`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch integrations');
+    }
+
+    const data = await response.json();
+    return data.integrations.filter((int: Integration) => int.is_active);
+  } catch (error) {
+    console.error('[TNC] Get integrations error:', error);
+    return [];
+  }
+}
+
+/**
+ * Scrap을 Slack으로 전송
+ */
+export async function sendScrapToSlack(
+  request: SendScrapToSlackRequest,
+  jwt: string
+): Promise<SendScrapToSlackResponse> {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/scraps/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Slack 전송에 실패했습니다.');
+    }
+
+    const data: SendScrapToSlackResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('[TNC] Send scrap to Slack error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Slack 전송에 실패했습니다.',
+    };
+  }
+}
+
+/**
+ * 사용자의 Scrap 목록 가져오기
+ */
+export async function getScraps(jwt: string): Promise<Scrap[]> {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/scraps`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch scraps');
+    }
+
+    const data: GetScrapsResponse = await response.json();
+    return data.scraps || [];
+  } catch (error) {
+    console.error('[TNC] Get scraps error:', error);
+    return [];
   }
 }

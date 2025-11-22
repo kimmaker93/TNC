@@ -13,6 +13,11 @@ export interface PageContent {
 }
 
 /**
+ * Persona 타입
+ */
+export type Persona = 'general' | 'marketing' | 'dev' | 'biz';
+
+/**
  * 요약 설정
  */
 export interface SummaryConfig {
@@ -20,6 +25,7 @@ export interface SummaryConfig {
   language: 'ko' | 'en';
   maxLength: number;
   summaryMode: 'bullets' | 'paragraph';
+  persona?: Persona; // 추가: 요약 페르소나
 }
 
 /**
@@ -52,6 +58,7 @@ export interface SummaryRequest {
   title: string;
   url: string;
   mode: 'summary' | 'keywords';
+  persona?: Persona; // 추가: 페르소나 선택
   maxTokens?: number;
 }
 
@@ -138,7 +145,7 @@ export interface ExtensionMessage<T = any> {
 /**
  * Popup View 타입 (라우팅용)
  */
-export type PopupView = 'main' | 'settings' | 'auth';
+export type PopupView = 'main' | 'settings' | 'auth' | 'history';
 
 /**
  * 사용자 정보
@@ -199,5 +206,82 @@ export enum AuthMessageType {
 export interface AuthMessage<T = any> {
   type: AuthMessageType;
   payload?: T;
+  error?: string;
+}
+
+/**
+ * Scrap (저장된 요약 데이터)
+ */
+export interface Scrap {
+  id: string;
+  user_id: string;
+  integration_id: string | null;
+  url: string;
+  title: string | null;
+  summary: string | null;
+  keywords: string[] | null;
+  persona: Persona;
+  insight: string | null;
+  user_comment: string | null;
+  word_count: number | null;
+  created_at: string;
+}
+
+/**
+ * Scrap 생성 요청
+ */
+export interface CreateScrapRequest {
+  url: string;
+  title: string;
+  content: string;
+  persona: Persona;
+  word_count: number;
+}
+
+/**
+ * Scrap 생성 응답
+ */
+export interface CreateScrapResponse {
+  success: boolean;
+  scrap?: Scrap;
+  error?: string;
+}
+
+/**
+ * Integration (Slack workspace)
+ */
+export interface Integration {
+  id: string;
+  user_id: string;
+  integration_type: 'slack' | 'discord' | 'teams';
+  webhook_url: string;
+  workspace_name: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+/**
+ * Scrap → Slack 전송 요청
+ */
+export interface SendScrapToSlackRequest {
+  scrap_id: string;
+  integration_id: string;
+  user_comment?: string;
+}
+
+/**
+ * Scrap → Slack 전송 응답
+ */
+export interface SendScrapToSlackResponse {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Scrap 목록 조회 응답
+ */
+export interface GetScrapsResponse {
+  success: boolean;
+  scraps?: Scrap[];
   error?: string;
 }
