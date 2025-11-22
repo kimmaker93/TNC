@@ -25,7 +25,7 @@ import { verifyJWT } from '../src/shared/jwt';
 import OpenAI from 'openai';
 
 // Supabase 클라이언트
-const supabaseUrl = process.env.VITE_SUPABASE_URL!;
+const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

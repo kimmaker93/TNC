@@ -27,7 +27,7 @@ import { generateJWT } from '../../src/shared/jwt';
 import type { User } from '../../src/shared/types';
 
 // Supabase 클라이언트 (서버용)
-const supabaseUrl = process.env.VITE_SUPABASE_URL!;
+const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!; // Service Role Key (RLS 우회)
 
 if (!supabaseUrl || !supabaseServiceKey) {
