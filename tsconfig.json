@@ -32,5 +32,6 @@
     }
   },
   "include": ["src"],
+  "exclude": ["src/shared/jwt.ts", "src/shared/supabase.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
