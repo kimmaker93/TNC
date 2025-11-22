@@ -64,7 +64,7 @@ async function fetchGoogleUserInfo(token: string): Promise<GoogleUserInfo> {
     throw new Error('Failed to fetch Google user info');
   }
 
-  return await response.json();
+  return (await response.json()) as GoogleUserInfo;
 }
 
 /**

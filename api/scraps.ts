@@ -181,15 +181,15 @@ async function generateSummary(
   // Summary를 배열로 변환 (- 로 시작하는 줄들)
   const summary = summaryText
     .split('\n')
-    .filter((line) => line.trim().startsWith('-'))
-    .map((line) => line.trim().substring(1).trim())
-    .filter((line) => line.length > 0);
+    .filter((line: string) => line.trim().startsWith('-'))
+    .map((line: string) => line.trim().substring(1).trim())
+    .filter((line: string) => line.length > 0);
 
   // Keywords를 배열로 변환
   const keywords = keywordsText
     .split(',')
-    .map((k) => k.trim())
-    .filter((k) => k.length > 0);
+    .map((k: string) => k.trim())
+    .filter((k: string) => k.length > 0);
 
   return {
     summary: summary.length > 0 ? summary : ['요약을 생성할 수 없습니다.'],

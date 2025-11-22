@@ -46,7 +46,7 @@ async function sendSlackMessage(
     ? scrap.summary
     : scrap.summary?.split('\n') || [];
 
-  const blocks = [
+  const blocks: any[] = [
     {
       type: 'header',
       text: {
