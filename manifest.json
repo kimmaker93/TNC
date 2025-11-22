@@ -10,7 +10,7 @@
     "identity"
   ],
   "oauth2": {
-    "client_id": "361028505698-15rolrhifds12v3f387is8f4upap20gc.apps.googleusercontent.com",
+    "client_id": "361028505698-hcc9h25mel5m23dv209cn6jv52uj0l0r.apps.googleusercontent.com",
     "scopes": ["profile", "email"]
   },
   "host_permissions": [
