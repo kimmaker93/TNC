@@ -138,4 +138,66 @@ export interface ExtensionMessage<T = any> {
 /**
  * Popup View 타입 (라우팅용)
  */
-export type PopupView = 'main' | 'settings';
+export type PopupView = 'main' | 'settings' | 'auth';
+
+/**
+ * 사용자 정보
+ */
+export interface User {
+  id: string;
+  googleId: string;
+  email: string;
+  name: string;
+  profilePicture?: string;
+  subscriptionTier: 'free' | 'pro';
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+/**
+ * 인증 상태
+ */
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  jwt: string | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+/**
+ * Google OAuth 응답
+ */
+export interface GoogleAuthResponse {
+  token: string;
+  email: string;
+}
+
+/**
+ * Backend 로그인 응답
+ */
+export interface LoginResponse {
+  success: boolean;
+  jwt?: string;
+  user?: User;
+  error?: string;
+}
+
+/**
+ * Auth 관련 메시지 타입
+ */
+export enum AuthMessageType {
+  LOGIN = 'AUTH_LOGIN',
+  LOGOUT = 'AUTH_LOGOUT',
+  CHECK_AUTH = 'AUTH_CHECK',
+  GET_TOKEN = 'AUTH_GET_TOKEN',
+}
+
+/**
+ * Auth 메시지
+ */
+export interface AuthMessage<T = any> {
+  type: AuthMessageType;
+  payload?: T;
+  error?: string;
+}

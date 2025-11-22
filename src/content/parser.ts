@@ -159,9 +159,9 @@ export class ContentParser {
         url,
         title,
         content,
-        excerpt: metadata.excerpt,
-        author: metadata.author || undefined,
-        publishedDate: metadata.publishedDate || undefined,
+        excerpt: metadata.excerpt ?? undefined,
+        author: metadata.author ?? undefined,
+        publishedDate: metadata.publishedDate ?? undefined,
         wordCount,
         timestamp: Date.now(),
       };
@@ -175,7 +175,7 @@ export class ContentParser {
    * SPA 대응 - DOM 변경 감지
    */
   public static observeDOMChanges(callback: () => void, delay = 2000): void {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
 
     const observer = new MutationObserver(() => {
       clearTimeout(timeout);

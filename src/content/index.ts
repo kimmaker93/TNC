@@ -1,5 +1,5 @@
 import { ContentParser } from './parser';
-import { MessageType, type ExtensionMessage, type PageContent } from '@shared/types';
+import { MessageType, type ExtensionMessage } from '@shared/types';
 
 console.log('[TNC] Content script loaded');
 
@@ -51,7 +51,7 @@ function isPageSupported(): boolean {
 chrome.runtime.onMessage.addListener(
   (
     message: ExtensionMessage,
-    sender: chrome.runtime.MessageSender,
+    _sender: chrome.runtime.MessageSender,
     sendResponse: (response?: ExtensionMessage) => void
   ) => {
     if (message.type === MessageType.EXTRACT_CONTENT) {

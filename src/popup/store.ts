@@ -3,13 +3,22 @@ import type {
   ExtensionState,
   PageContent,
   UserSettings,
-  SummaryResponse,
   PopupView,
+  User,
+  AuthState,
 } from '@shared/types';
 import { getUserSettings, checkAndUpdateUsage, incrementUsage, saveUserSettings } from '@shared/utils';
 import { DEFAULT_SETTINGS } from '@shared/constants';
 
 interface PopupState {
+  // 인증 상태
+  auth: AuthState;
+  setAuthLoading: (isLoading: boolean) => void;
+  setAuthError: (error: string | null) => void;
+  setUser: (user: User | null, jwt: string | null) => void;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+
   // 뷰 네비게이션
   currentView: PopupView;
   setCurrentView: (view: PopupView) => void;
@@ -53,6 +62,73 @@ interface PopupState {
 }
 
 export const usePopupStore = create<PopupState>((set, get) => ({
+  // 인증 상태
+  auth: {
+    isAuthenticated: false,
+    user: null,
+    jwt: null,
+    isLoading: false,
+    error: null,
+  },
+  setAuthLoading: (isLoading) => {
+    const current = get().auth;
+    set({ auth: { ...current, isLoading, error: null } });
+  },
+  setAuthError: (error) => {
+    const current = get().auth;
+    set({ auth: { ...current, error, isLoading: false } });
+  },
+  setUser: (user, jwt) => {
+    set({
+      auth: {
+        isAuthenticated: !!user,
+        user,
+        jwt,
+        isLoading: false,
+        error: null,
+      },
+    });
+    // Chrome Storage에 사용자 정보 저장
+    if (user && jwt) {
+      chrome.storage.local.set({
+        user,
+        jwt,
+        lastLoginAt: new Date().toISOString(),
+      });
+    }
+  },
+  logout: async () => {
+    // Chrome Storage에서 사용자 정보 삭제
+    await chrome.storage.local.remove(['user', 'jwt', 'lastLoginAt']);
+    set({
+      auth: {
+        isAuthenticated: false,
+        user: null,
+        jwt: null,
+        isLoading: false,
+        error: null,
+      },
+    });
+  },
+  checkAuth: async () => {
+    try {
+      get().setAuthLoading(true);
+
+      // Chrome Storage에서 사용자 정보 확인
+      const result = await chrome.storage.local.get(['user', 'jwt']);
+
+      if (result.user && result.jwt) {
+        // JWT 유효성 검증은 추후 Backend API 호출 시 확인
+        get().setUser(result.user, result.jwt);
+      } else {
+        get().setUser(null, null);
+      }
+    } catch (error) {
+      console.error('[TNC] Check auth error:', error);
+      get().setAuthError('인증 상태 확인에 실패했습니다.');
+    }
+  },
+
   // 뷰 네비게이션
   currentView: 'main',
   setCurrentView: (view) => set({ currentView: view }),
