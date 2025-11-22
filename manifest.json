@@ -6,8 +6,13 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "identity"
   ],
+  "oauth2": {
+    "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": ["profile", "email"]
+  },
   "host_permissions": [
     "https://*/*",
     "http://*/*"

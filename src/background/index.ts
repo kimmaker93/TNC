@@ -1,6 +1,10 @@
 import { MessageType, type ExtensionMessage } from '@shared/types';
+import { setupAuthMessageListener } from './auth';
 
 console.log('[TNC] Background service worker loaded');
+
+// Auth 메시지 리스너 등록
+setupAuthMessageListener();
 
 /**
  * Extension 설치 시
@@ -79,7 +83,7 @@ async function handleExtractContent(
 /**
  * Keep-alive for service worker
  */
-let keepAliveInterval: NodeJS.Timeout | null = null;
+let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 
 function startKeepAlive() {
   if (keepAliveInterval === null) {
@@ -89,12 +93,13 @@ function startKeepAlive() {
   }
 }
 
-function stopKeepAlive() {
-  if (keepAliveInterval !== null) {
-    clearInterval(keepAliveInterval);
-    keepAliveInterval = null;
-  }
-}
-
 // 시작 시 keep-alive 시작
 startKeepAlive();
+
+// Note: stopKeepAlive는 필요시 사용 (현재 미사용)
+// function stopKeepAlive() {
+//   if (keepAliveInterval !== null) {
+//     clearInterval(keepAliveInterval);
+//     keepAliveInterval = null;
+//   }
+// }

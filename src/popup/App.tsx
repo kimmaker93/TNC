@@ -7,18 +7,34 @@ import { CompleteView } from './components/CompleteView';
 import { ErrorView } from './components/ErrorView';
 import { UnsupportedPage } from './components/UnsupportedPage';
 import { Settings } from './pages/Settings';
+import { AuthPage } from './pages/AuthPage';
 import { MessageType, type ExtensionMessage, type PageContent } from '@shared/types';
 
 export default function App() {
-  const { currentView, state, setState, setPageContent, setError, loadSettings, loadUsage } = usePopupStore();
+  const {
+    currentView,
+    state,
+    setState,
+    setPageContent,
+    setError,
+    loadSettings,
+    loadUsage,
+    auth,
+    checkAuth,
+  } = usePopupStore();
 
   useEffect(() => {
-    // 초기 설정 로드
-    loadSettings();
-    loadUsage();
+    // 1. 인증 상태 확인 (최우선)
+    checkAuth().then(() => {
+      // 2. 인증된 경우에만 설정 및 사용량 로드
+      if (auth.isAuthenticated) {
+        loadSettings();
+        loadUsage();
 
-    // 현재 탭의 콘텐츠 추출 (아직 API 호출 안함 - 비용 방어)
-    extractPageContent();
+        // 3. 현재 탭의 콘텐츠 추출 (아직 API 호출 안함 - 비용 방어)
+        extractPageContent();
+      }
+    });
   }, []);
 
   /**
@@ -58,6 +74,24 @@ export default function App() {
     }
   };
 
+  // 인증 로딩 중
+  if (auth.isLoading) {
+    return (
+      <div className="w-[400px] h-[600px] bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-sm text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 미인증 사용자 → AuthPage 표시
+  if (!auth.isAuthenticated) {
+    return <AuthPage />;
+  }
+
+  // 인증된 사용자 → 기존 플로우
   // 설정 페이지 렌더링
   if (currentView === 'settings') {
     return (
