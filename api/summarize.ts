@@ -107,7 +107,7 @@ JSON 응답:`,
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error: any = await response.json();
     throw new Error(error.error?.message || 'OpenAI API 호출 실패');
   }
 
