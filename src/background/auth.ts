@@ -26,32 +26,35 @@ export async function loginWithGoogle(): Promise<LoginResponse> {
 
     console.log('[TNC Auth] Google OAuth token acquired');
 
-    // Google UserInfo API를 통해 사용자 정보 가져오기
-    const userInfo = await fetchGoogleUserInfo(token);
+    // Backend API에 토큰 전송하여 JWT 발급
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        googleToken: token,
+      }),
+    });
 
-    console.log('[TNC Auth] User info fetched:', userInfo.email);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Backend API 호출에 실패했습니다.');
+    }
 
-    // TODO: Backend API에 토큰 전송하여 JWT 발급
-    // 현재는 임시로 로컬에서 사용자 정보 생성
-    const user: User = {
-      id: userInfo.id,
-      googleId: userInfo.id,
-      email: userInfo.email,
-      name: userInfo.name,
-      profilePicture: userInfo.picture,
-      subscriptionTier: 'free',
-      createdAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
-    };
+    const data: LoginResponse = await response.json();
 
-    // TODO: Backend에서 발급받은 JWT를 사용해야 함
-    // 현재는 임시로 토큰을 JWT로 사용
-    const jwt = token;
+    if (!data.success || !data.user || !data.jwt) {
+      throw new Error('사용자 정보를 가져올 수 없습니다.');
+    }
+
+    console.log('[TNC Auth] User authenticated:', data.user.email);
 
     return {
       success: true,
-      user,
-      jwt,
+      user: data.user,
+      jwt: data.jwt,
     };
   } catch (error) {
     console.error('[TNC Auth] Login error:', error);
@@ -64,25 +67,26 @@ export async function loginWithGoogle(): Promise<LoginResponse> {
 
 /**
  * Google UserInfo API 호출
+ * Note: 현재는 Backend API에서 처리하므로 미사용
  */
-async function fetchGoogleUserInfo(token: string): Promise<{
-  id: string;
-  email: string;
-  name: string;
-  picture: string;
-}> {
-  const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+// async function fetchGoogleUserInfo(token: string): Promise<{
+//   id: string;
+//   email: string;
+//   name: string;
+//   picture: string;
+// }> {
+//   const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+//     headers: {
+//       Authorization: `Bearer ${token}`,
+//     },
+//   });
 
-  if (!response.ok) {
-    throw new Error('사용자 정보를 가져오는데 실패했습니다.');
-  }
+//   if (!response.ok) {
+//     throw new Error('사용자 정보를 가져오는데 실패했습니다.');
+//   }
 
-  return await response.json();
-}
+//   return await response.json();
+// }
 
 /**
  * 로그아웃 처리
