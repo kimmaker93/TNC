@@ -135,7 +135,7 @@ export default async function handler(
 
   try {
     const startTime = Date.now();
-    const { content, title, url, mode, maxTokens }: SummaryRequest = req.body;
+    const { content, title, url, mode }: SummaryRequest = req.body;
 
     // 입력 검증
     if (!content || !title || !url || !mode) {
