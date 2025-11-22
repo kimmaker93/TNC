@@ -145,7 +145,7 @@ export interface ExtensionMessage<T = any> {
 /**
  * Popup View 타입 (라우팅용)
  */
-export type PopupView = 'main' | 'settings' | 'auth';
+export type PopupView = 'main' | 'settings' | 'auth' | 'history';
 
 /**
  * 사용자 정보
@@ -274,5 +274,14 @@ export interface SendScrapToSlackRequest {
  */
 export interface SendScrapToSlackResponse {
   success: boolean;
+  error?: string;
+}
+
+/**
+ * Scrap 목록 조회 응답
+ */
+export interface GetScrapsResponse {
+  success: boolean;
+  scraps?: Scrap[];
   error?: string;
 }

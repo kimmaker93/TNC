@@ -9,6 +9,8 @@ import type {
   SendScrapToSlackRequest,
   SendScrapToSlackResponse,
   Integration,
+  GetScrapsResponse,
+  Scrap,
 } from '@shared/types';
 
 /**
@@ -214,5 +216,30 @@ export async function sendScrapToSlack(
       success: false,
       error: error instanceof Error ? error.message : 'Slack 전송에 실패했습니다.',
     };
+  }
+}
+
+/**
+ * 사용자의 Scrap 목록 가져오기
+ */
+export async function getScraps(jwt: string): Promise<Scrap[]> {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/scraps`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch scraps');
+    }
+
+    const data: GetScrapsResponse = await response.json();
+    return data.scraps || [];
+  } catch (error) {
+    console.error('[TNC] Get scraps error:', error);
+    return [];
   }
 }

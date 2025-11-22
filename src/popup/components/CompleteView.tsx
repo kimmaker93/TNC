@@ -3,6 +3,7 @@ import { usePopupStore } from '../store';
 import { sendScrapToSlack, getActiveIntegrations } from '../api';
 import { CHARACTER_LIMITS } from '@shared/constants';
 import { SettingsButton } from './SettingsButton';
+import { HistoryButton } from './HistoryButton';
 import type { Integration } from '@shared/types';
 
 export function CompleteView() {
@@ -102,7 +103,10 @@ export function CompleteView() {
       <div className="bg-green-600 text-white p-4">
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-lg font-bold">✨ 요약 완료!</h1>
-          <SettingsButton />
+          <div className="flex items-center gap-1">
+            <HistoryButton />
+            <SettingsButton />
+          </div>
         </div>
         <p className="text-sm opacity-90">내용을 확인하고 수정할 수 있습니다</p>
       </div>

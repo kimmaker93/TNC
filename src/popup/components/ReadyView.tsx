@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePopupStore } from '../store';
 import { createScrap } from '../api';
 import { SettingsButton } from './SettingsButton';
+import { HistoryButton } from './HistoryButton';
 import { PersonaSelector } from './PersonaSelector';
 import type { Persona } from '@shared/types';
 
@@ -75,7 +76,10 @@ export function ReadyView() {
       <div className="bg-primary-600 text-white p-4">
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-lg font-bold">Team News Clipper</h1>
-          <SettingsButton />
+          <div className="flex items-center gap-1">
+            <HistoryButton />
+            <SettingsButton />
+          </div>
         </div>
         <p className="text-sm opacity-90">페이지 요약 준비 완료</p>
       </div>

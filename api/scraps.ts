@@ -199,6 +199,41 @@ async function generateSummary(
 }
 
 /**
+ * GET /api/scraps
+ * 사용자의 Scrap 목록 조회
+ */
+async function handleGet(req: VercelRequest, res: VercelResponse) {
+  const userId = getUserIdFromRequest(req);
+
+  if (!userId) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
+  try {
+    const { data: scraps, error } = await supabase
+      .from('scrap_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return res.status(200).json({
+      success: true,
+      scraps: scraps || [],
+    });
+  } catch (error) {
+    console.error('[API] Get scraps error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch scraps',
+    });
+  }
+}
+
+/**
  * POST /api/scraps
  */
 async function handlePost(req: VercelRequest, res: VercelResponse) {
@@ -271,11 +306,15 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS 헤더
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  if (req.method === 'GET') {
+    return handleGet(req, res);
   }
 
   if (req.method === 'POST') {
