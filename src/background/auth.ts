@@ -168,6 +168,17 @@ export function setupAuthMessageListener() {
         switch (message.type) {
           case 'AUTH_LOGIN':
             const loginResult = await loginWithGoogle();
+
+            // 로그인 성공 시 Chrome Storage에 저장
+            if (loginResult.success && loginResult.user && loginResult.jwt) {
+              await chrome.storage.local.set({
+                user: loginResult.user,
+                jwt: loginResult.jwt,
+                lastLoginAt: new Date().toISOString(),
+              });
+              console.log('[TNC Auth] User data saved to storage');
+            }
+
             sendResponse(loginResult);
             break;
 
