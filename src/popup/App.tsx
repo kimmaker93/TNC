@@ -24,19 +24,19 @@ export default function App() {
     checkAuth,
   } = usePopupStore();
 
+  // 1. 인증 상태 확인 (컴포넌트 마운트 시 한번만)
   useEffect(() => {
-    // 1. 인증 상태 확인 (최우선)
-    checkAuth().then(() => {
-      // 2. 인증된 경우에만 설정 및 사용량 로드
-      if (auth.isAuthenticated) {
-        loadSettings();
-        loadUsage();
-
-        // 3. 현재 탭의 콘텐츠 추출 (아직 API 호출 안함 - 비용 방어)
-        extractPageContent();
-      }
-    });
+    checkAuth();
   }, []);
+
+  // 2. 인증 완료 후 설정 및 콘텐츠 로드
+  useEffect(() => {
+    if (auth.isAuthenticated && !auth.isLoading) {
+      loadSettings();
+      loadUsage();
+      extractPageContent();
+    }
+  }, [auth.isAuthenticated, auth.isLoading]);
 
   /**
    * 페이지 콘텐츠 추출
