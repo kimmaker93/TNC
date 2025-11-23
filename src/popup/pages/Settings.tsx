@@ -17,7 +17,7 @@ interface SlackIntegration {
  * 설정 페이지 (Slack 연동 관리 포함)
  */
 export function Settings() {
-  const { setCurrentView, auth, updateSettings } = usePopupStore();
+  const { setCurrentView, auth, updateSettings, logout } = usePopupStore();
 
   // Slack 연동 상태
   const [integrations, setIntegrations] = useState<SlackIntegration[]>([]);
@@ -167,6 +167,17 @@ export function Settings() {
     }
   };
 
+  /**
+   * 로그아웃
+   */
+  const handleLogout = async () => {
+    if (confirm('정말 로그아웃하시겠습니까?')) {
+      await logout();
+      // 로그아웃 후 자동으로 AuthPage로 이동
+      setCurrentView('main');
+    }
+  };
+
   // 초기 로드
   useEffect(() => {
     loadIntegrations();
@@ -195,6 +206,32 @@ export function Settings() {
 
       {/* 설정 내용 */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        {/* 사용자 정보 섹션 */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+          <div className="flex items-center gap-3 mb-3">
+            {auth.user?.profilePicture && (
+              <img
+                src={auth.user.profilePicture}
+                alt="Profile"
+                className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-gray-900">{auth.user?.name || '사용자'}</h3>
+              <p className="text-sm text-gray-600 truncate">{auth.user?.email}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium rounded-lg transition-colors text-sm"
+          >
+            🚪 로그아웃
+          </button>
+        </div>
+
+        {/* 구분선 */}
+        <div className="border-t border-gray-200" />
+
         {/* Slack 연동 섹션 */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
